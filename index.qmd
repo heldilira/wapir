@@ -4,7 +4,7 @@ date: now
 date-format: "YYYY-MM-DD HH:mm"
 ---
 
-This is a companion for the book [_Web APIs with R_](https://wapir.io/) by Jon Harmon (in progress, aiming for publication in 2025).
+This is a companion for the book [*Web APIs with R*](https://wapir.io/) by Jon Harmon (in progress, aiming for publication in 2025).
 
 Each chapter title to the left is a link to a slide deck.
 
@@ -14,5 +14,5 @@ Each chapter title to the left is a link to a slide deck.
 -   You may want to type "s" at the start of each deck to open the *s*peaker notes. Since these slides are structured like a talk, I tend to make a lot of notes to myself there to expand on the information in the slide.
 -   Slides often have a "TODO" section at the start, with notes that I plan to implement on my next pass through the book.
 -   [Join the Data Science Learning Community](https://dslc.io/join) to participate in the discussion!
-    
+
 We follow the [Data Science Learning Community Code of Conduct](https://dslc.io/conduct).
