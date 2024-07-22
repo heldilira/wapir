@@ -24,14 +24,12 @@ library(httr2)
 ```
 
 ::: notes
-"After we finish this chapter, we'll be able to..." (objectives)
--   Not every possible API, but we'll get the basics.
--   I'm also hoping to make it clear why httr2 is useful!
+"After we finish this chapter, we'll be able to..." (objectives) - Not every possible API, but we'll get the basics. - I'm also hoping to make it clear why httr2 is useful!
 :::
 
 ## What can we do so far?
 
-:::: columns
+::: columns
 ::: {.column .fragment}
 We can:
 
@@ -41,6 +39,7 @@ We can:
 -   Fetch JSON data with {jsonlite}
 -   Fetch YAML data with {yaml}
 :::
+
 ::: {.column .fragment}
 We can't *yet*:
 
@@ -49,16 +48,21 @@ We can't *yet*:
 -   Access APIs that require authentication
 -   Fetch other types of data (raw text, images, videos, etc)
 :::
-::::
+:::
 
 ::: notes
 -   Browser: As long as it isn't using our login information without us realizing it.
 
 -   No browser: There are technically 9 types of requests (HTTP methods), we can do 1 of them so far.
+
 -   A lot of APIs use something called "oauth", can be really confusing
+
 -   The endpoints we've hit haven't had arguments, but almost all do
+
 -   We can get some specific things with download.file, but need to parse each with different packages
+
 -   ...and other things we don't yet know that we wish we could do
+
 -   We'll use httr2 to deal with all of these things
 :::
 
@@ -92,18 +96,21 @@ jsonlite::write_json(
   null = "null"
 )
 ```
+
 ```{r}
 #| label: httr2-motivating-read
 #| eval: true
 #| include: false
 openfec_response <- readRDS(here::here("slides", "httr2", "openfec_response.rds"))
 ```
+
 ::: fragment
 ```{r}
 #| label: httr2-motivating-example
 openfec_response <- jsonlite::read_json("https://api.open.fec.gov/v1/candidates/?election_year=2020&office=P&api_key=DEMO_KEY")
 ```
 :::
+
 ::: fragment
 ```{r}
 #| label: httr2-motivating-tibblify
@@ -132,6 +139,7 @@ tibblify(openfec_response$results) |>
 ::: fragment
 Pipe-based API calls
 :::
+
 ::: fragment
 ```{r}
 #| label: httr2-demo
@@ -148,10 +156,12 @@ candidates <-
   resp_body_json() # Chapter 7
 ```
 :::
+
 ::: fragment
 ```{r}
 waldo::compare(candidates, openfec_response)
 ```
+
 ```{r}
 #| label: httr2-demo-eval
 #| eval: true
@@ -161,7 +171,7 @@ waldo::compare(openfec_response, openfec_response)
 :::
 
 ::: notes
--   I use |> base R pipe here. Pronounce it "and then".
+-   I use \|\> base R pipe here. Pronounce it "and then".
 -   httr2 calls usually involve a request, which you perform, and then you parse the response.
 -   We're hitting the free, open api from the Federal Elections Commission.
 -   (step through)
@@ -187,7 +197,7 @@ HTTP = HyperText Transfer Protocol
 
 ::: notes
 -   You may have seen http or https at the start of URLs (web addresses)
--   "web content" = 
+-   "web content" =
     -   originally text and links (HTML = HyperText Markup Language)
     -   now data, images, videos, etc.
 -   "exchange" or "move"
@@ -211,18 +221,21 @@ req_candidates <- req_url_path_append(req_fec_auth, "candidates")
 req_candidates_president <- req_url_query(req_candidates, office = "P")
 ```
 :::
+
 ::: fragment
 ```{r}
 pres_2024 <- req_url_query(req_candidates_president, election_year = 2024) |> 
   req_perform() |> resp_body_json()
 ```
 :::
+
 ::: fragment
 ```{r}
 candidates_2022 <- req_url_query(req_candidates, election_year = 2022) |> 
   req_perform() |> resp_body_json()
 ```
 :::
+
 ::: fragment
 ```{r}
 req_calendar <- req_url_path_append(req_fec_auth, "calendar-dates")
@@ -232,7 +245,7 @@ req_calendar <- req_url_path_append(req_fec_auth, "calendar-dates")
 ::: notes
 -   Imagine you're working with an API, like the FEC API
     -   What you'll very often do.
--   We'll go through function specifics in a moment, just soak in the utility of separate objects 
+-   We'll go through function specifics in a moment, just soak in the utility of separate objects
 -   This is super important, so let's pause to sink this in
 -   I'm going to drink some water while you make sure you have that.
 :::
@@ -299,6 +312,7 @@ req_candidates$url
 ::: {style="font-size:0.9em;"}
 https://api.open.fec.gov/v1/candidates/***?api_key=DEMO_KEY&office=P***
 :::
+
 ::: fragment
 ```{r}
 #| eval: true
@@ -325,6 +339,7 @@ req_pres2 <- req_candidates_auth |>
   req_url_query(office = "P")
 ```
 :::
+
 ::: fragment
 ```{r}
 #| eval: true
@@ -349,6 +364,7 @@ req_url_query(req_candidates, office = c("H", "S"))
 
 ::: fragment
 `.multi = "pipe"`
+
 ```{r}
 #| eval: true
 req_url_query(req_candidates, office = c("H", "S"), .multi = "pipe")$url
@@ -357,6 +373,7 @@ req_url_query(req_candidates, office = c("H", "S"), .multi = "pipe")$url
 
 ::: fragment
 `.multi = "comma"`
+
 ```{r}
 #| eval: true
 req_url_query(req_candidates, office = c("H", "S"), .multi = "comma")$url
@@ -365,6 +382,7 @@ req_url_query(req_candidates, office = c("H", "S"), .multi = "comma")$url
 
 ::: fragment
 `.multi = "explode"`
+
 ```{r}
 #| eval: true
 req_url_query(req_candidates, office = c("H", "S"), .multi = "explode")$url
