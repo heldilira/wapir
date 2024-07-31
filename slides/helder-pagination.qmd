@@ -13,6 +13,7 @@ title: Get a lot of data from APIs
 ::: nonincremental
 -   Find information about pagination in API docs and descriptions.
 -   Retry API requests respectfully.
+    -   "De forma respeitosa"
 -   Retrieve multiple pages of data from an API.
 -   Process lists of {httr2} responses.
 :::
@@ -32,6 +33,8 @@ library(tibblify)
 
 ## Why paginate?
 
+Basicamente é relativamente caro mandar um monte de coisa de uma vez e correr o risco de corromper no caminho e ter que mandar de novo, e esse problema aumenta se forem muitos dados.
+
 -   Network traffic is slow & expensive
 -   Bigger transfers ➡️ more corruption chance ➡️ resends
 -   So APIs often limit results per call
@@ -39,7 +42,7 @@ library(tibblify)
 
 ## What are some pagination strategies?
 
-:::: columns
+::: columns
 ::: column
 -   **Offset:** `page` param
     -   [OpenFEC](https://api.open.fec.gov/developers/#/candidate/get_v1_candidates_)
@@ -47,15 +50,19 @@ library(tibblify)
 -   **Cursor:** `cursor` or `token` param
     -   [Crossref.org "deep paging"](https://api.crossref.org/swagger-ui/index.html)
 :::
+
 ::: column
 -   **Header link:** `Link:` to `next` in response `header`
     -   [GitHub](https://docs.github.com/en/rest/using-the-rest-api/using-pagination-in-the-rest-api?apiVersion=2022-11-28#using-link-headers)
-    -   [MTG cars](https://docs.magicthegathering.io/#documentationheaders)
+    -   [Magic The Gathering Cards](https://docs.magicthegathering.io/#documentationheaders)
 -   **Body link:** `nextUrl` in response `body`
-    -   [open5e.com monsters](https://api.open5e.com/monsters/?limit=100)
+    -   [open5e.com monsters](https://api.open5e.com/monsters/?limit=100) from D&D
 :::
-::::
+:::
+
 -   shared: Most offer `perPage` or `pageSize` param
+-   Header: É tipo onde estão as informações daquela API que vc hittou (tipo um cabeçalho mesmo, e as vezes o link da próxima página de resultados está nesse cabeçalho ou no conteúdo (body) da request
+-   Muita das vezes vai ter um parâmetro que diz quantos resultados você consegue atingir com cada request e as vezes dá pra alterar esse valor.
 
 ## How can I determine how an API handles pagination?
 
@@ -70,6 +77,8 @@ Unfortunately, no standard.
 # How do I perform pagination?
 
 ## Aside: Retries and API consumer etiquette
+
+Provalmente, quanto mais dinheiro envolvido nas request, mais eles tentarão te informar o quão "bonzinho" você precisa ser pra acessar pra fazer os requests e as paginações daquela API
 
 -   Pagination ➡️ repeated API calls
 -   Be nice!
@@ -112,6 +121,7 @@ normal_request |>
 
 -   `param_name` = `"page"` or whatever API calls it
 -   `start`, `offset` = almost always leave as-is
+    -   exemplo: começar na página 1 e iterar 1 página por vez (faz sentido pegar tudo, mas e se você quiser uma sample, pode usar esse parâmetro)
 -   `resp_pages` = function to convert `resp` to page count
     -   `max_reqs <- min(max_reqs, total_pages)`
 -   `resp_complete` = function to check if `resp` is last page
@@ -129,15 +139,16 @@ normal_request |>
 
 ```{r}
 #| label: httr2-pagination-fec-request
+
 candidates_request <- 
   request("https://api.open.fec.gov/v1/candidates") |> 
   req_url_query(api_key = "DEMO_KEY", election_year = 2020, office = "P") |> 
-  req_url_query(has_raised_funds = TRUE)
+  req_url_query(has_raised_funds = TRUE) # só pra diminuir o tamanho da resposta (n° de candidatos)
 ```
 
 <br/>
 
-:::: columns
+::: columns
 ::: {.column .fragment}
 ```{r}
 #| label: httr2-pagination-fec-single
@@ -151,6 +162,7 @@ candidates_single$pagination$count
 #> [1] 173
 ```
 :::
+
 ::: {.column .fragment}
 ```{r}
 #| label: httr2-pagination-fec-multi
@@ -169,7 +181,9 @@ candidates_multi <-
   )
 length(candidates_multi)
 #> [1] 9
+# ou seja, isso aqui são 9 responses diferentes, o que vamos vamos com isso é outro assunto, mas assim conseguimos 9 paginas completas. 
 ```
+
 ```{r}
 #| label: httr2-pagination-fec-multi-save-result
 #| eval: false
@@ -193,11 +207,12 @@ saveRDS(
 )
 ```
 :::
-::::
+:::
 
 ::: notes
 -   Warning: This might take a while with the DEMO_KEY
 -   We'll see how to extract data from the pages shortly
+-   Isso aqui é provavelmente o que você precisa pra conseguir todos os dados de uma API
 :::
 
 ## Offset example: crossref.org
@@ -211,7 +226,7 @@ crossref_request <-
 
 <br/>
 
-:::: columns
+::: columns
 ::: {.column .fragment}
 ```{r}
 #| label: httr2-pagination-crossref-single
@@ -225,6 +240,7 @@ crossref_single$message$`total-results`
 #> [1] 14114
 ```
 :::
+
 ::: {.column .fragment}
 ```{r}
 #| label: httr2-pagination-crossref-multi
@@ -245,7 +261,7 @@ length(crossref_multi)
 #> [1] 706
 ```
 :::
-::::
+:::
 
 ::: notes
 -   Warning: This takes a long time, probably don't actually run it!
@@ -275,7 +291,7 @@ crossref_request_cursor <-
 
 <br/>
 
-:::: columns
+::: columns
 ::: {.column .fragment}
 ```{r}
 #| label: httr2-pagination-crossref-single-cursor
@@ -288,6 +304,7 @@ names(crossref_single$message)
 #> [6] "query" 
 ```
 :::
+
 ::: {.column .fragment}
 ```{r}
 #| label: httr2-pagination-crossref-multi-cursor
@@ -311,7 +328,7 @@ length(crossref_multi)
 #> [1] 706
 ```
 :::
-::::
+:::
 
 ::: notes
 -   Warning: This takes a long time, probably don't actually run it!
@@ -342,7 +359,7 @@ mtg_cards_request <-
 
 <br/>
 
-:::: columns
+::: columns
 ::: {.column .fragment}
 ```{r}
 #| label: httr2-pagination-mtg-single
@@ -356,6 +373,7 @@ mtg_cards_content <- mtg_cards_single |>
   resp_body_json()
 ```
 :::
+
 ::: {.column .fragment}
 ```{r}
 #| label: httr2-pagination-mtg-multi
@@ -369,6 +387,7 @@ mtg_cards_multi <-
 length(mtg_cards_multi)
 #> [1] 5
 ```
+
 ```{r}
 #| label: httr2-pagination-mtg-multi-save-result
 #| eval: false
@@ -386,7 +405,7 @@ saveRDS(
 )
 ```
 :::
-::::
+:::
 
 ::: notes
 -   If I were working with this one a lot, I'd probably actually use offset pagination.
@@ -408,7 +427,7 @@ dnd_request <-
 
 <br/>
 
-:::: columns
+::: columns
 ::: {.column .fragment}
 ```{r}
 #| label: httr2-pagination-dnd-single
@@ -422,6 +441,7 @@ dnd_single$count
 #> [1] 2439
 ```
 :::
+
 ::: {.column .fragment}
 ```{r}
 #| label: httr2-pagination-dnd-multi
@@ -440,6 +460,7 @@ dnd_multi <-
 length(dnd_multi)
 #> [1] 25
 ```
+
 ```{r}
 #| label: httr2-pagination-dnd-multi-save-result
 #| eval: false
@@ -462,7 +483,7 @@ saveRDS(
 )
 ```
 :::
-::::
+:::
 
 ::: notes
 -   Used code returned by `iterate_with_link_url()` as template
@@ -502,6 +523,7 @@ fec_resp_parser <- function(resp) {
 }
 ```
 :::
+
 ::: fragment
 ```{r}
 #| label: httr2-pagination-fec-resps_data

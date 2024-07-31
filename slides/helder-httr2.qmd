@@ -152,7 +152,7 @@ candidates <-
     election_year = 2020,
     office = "P"
   ) |> 
-  req_perform() |> # Chapter 5 (next)
+  req_perform() |> # Chapter 5 (next), essa é a parte onde de fato estamos "hitting" o servidor
   resp_body_json() # Chapter 7
 ```
 :::
@@ -160,6 +160,8 @@ candidates <-
 ::: fragment
 ```{r}
 waldo::compare(candidates, openfec_response)
+
+# estamos comparando as duas respostas, uma lida de um .json do computador e outra feita através de uma request do httr2, feita de forma pipe-based (o que facilita muito) 
 ```
 
 ```{r}
@@ -188,11 +190,11 @@ waldo::compare(openfec_response, openfec_response)
 ::: fragment
 HTTP = HyperText Transfer Protocol
 
--   "HyperText" = web content
+-   "HyperText" = web content (textos e links, mas hoje em dia serve pra muito mais coisa, imagens, videos, dados, etc)
 -   "Transfer" = exchange
 -   "Protocol" = rules
 -   "rules for exchanging web content"
--   HTTP(S) = most of internet communication
+-   HTTP(S) = most of internet communication (s = secure = seguro)
 :::
 
 ::: notes
@@ -219,6 +221,8 @@ req_fec <- request("https://api.open.fec.gov/v1")
 req_fec_auth <- req_url_query(req_fec, api_key = "DEMO_KEY")
 req_candidates <- req_url_path_append(req_fec_auth, "candidates")
 req_candidates_president <- req_url_query(req_candidates, office = "P")
+
+# aqui estamos adicionando passo a passo uma nova informação para cada parte de uma request e reutilizando a parte anterior
 ```
 :::
 
@@ -274,6 +278,8 @@ req_candidates <- req_fec |>
 ```{r}
 #| eval: true
 req_candidates$url
+
+# Ou seja, fazer dessa forma possibilita vc alterar partes específicas de uma request, nesse caso pegamos a API e colocamos a parte de candidatos, mas que poderia ser outra, ou um vetor de outros endpoints, enfim. 
 ```
 :::
 
@@ -299,6 +305,8 @@ req_path_bad$url
 ```{r}
 #| eval: true
 req_candidates$url
+
+# nesse caso ele dropou o /v1 e dessa forma não estaríamos acertando o endpoint correto, ou seja, ter cuidado com essa função pq ela "come" o URL anterior
 ```
 :::
 
@@ -312,6 +320,16 @@ req_candidates$url
 ::: {style="font-size:0.9em;"}
 https://api.open.fec.gov/v1/candidates/***?api_key=DEMO_KEY&office=P***
 :::
+
+-   endpoint = candidates (na documentação a ideia é que tenha os parâmetros possíveis de atingir com o endpoint)
+
+-   root/base URL = api.open.fec.gov/
+
+-   path = v1/candidates/***?api_key=DEMO_KEY&office=P***
+
+    -   tudo que vem depois de ? é query = ***?api_key=DEMO_KEY&office=P***
+
+-   protocol = https
 
 ::: fragment
 ```{r}
@@ -354,11 +372,18 @@ identical(req_pres$url, req_pres2$url)
 
 ## `req_url_query(.multi)`
 
+-   Aqui você provavelmente vai ter que experimentar pq normalmente os desenvolvedores não relatam muito bem qual a forma correta de pegar diferentes valores numa mesma URL.
+
+-   As vezes eles não colocam na descrição da API mas tem na documentação da mesma.
+
 ::: fragment
 ```{r}
 #| eval: true
 #| error: true
 req_url_query(req_candidates, office = c("H", "S"))
+
+# isso da erro pq: como vamos colocar vários parâmetros dentro do mesmo argumento? já que é um endereço só...use o .multi abaixo, ele disse que lá na especificação era um array, ou seja espera mais de algum valor. 
+
 ```
 :::
 
